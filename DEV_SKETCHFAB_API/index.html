@@ -1,0 +1,132 @@
+<meta charset="UTF-8">
+<html>
+<head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<link rel="stylesheet" href="./js/bootstrap-5.0.0-beta1-dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="./js/datetimepicker-smalot/css/bootstrap-datetimepicker.min.css">
+<script src="./js/jquery/jquery-3.5.1.min.js"></script>
+<script src="./js/bootstrap-5.0.0-beta1-dist/js/bootstrap.min.js"></script>
+<script src="./js/datetimepicker-smalot/js/bootstrap-datetimepicker.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="row" >
+    <div class="col-sm-0 col-md-4 d-flex justify-content-start"></div>
+    <div class="col-sm-11 col-md-8 d-flex justify-content-start">    
+        <div class="row">
+            <!--row 1-->
+			<div class="col-sm-12 d-flex justify-content-start "><h2>Sketchfab metadata picker</h2></div>
+            <div class="col-sm-2 d-flex justify-content-start ">
+            Token:
+            </div>
+            <div class="col-sm-10 d-flex justify-content-start">
+               <input type="text" name="token" id="token" value="0be96b3b554042da935d686d3c9f8b67"/>
+            </div> 
+			
+			 <div class="col-sm-2 d-flex justify-content-start ">
+				Published from:
+            </div>
+			<div class="col-sm-10 d-flex justify-content-start">
+              <input size="16" type="text" class="form_datetime">
+            </div> 
+			 <div class="col-sm-2 d-flex justify-content-start ">
+				Go:
+            </div>
+			<div class="col-sm-10 d-flex justify-content-start">
+              <input type="button" value="download" id="download" name="download"/>
+            </div> 
+		</div>
+	</div>
+	</div>
+	<div class="wait" style="font-style: italic;" ></div>
+		<br/>
+		<div class='download_link' style="display:none"> <a download="models.txt"  class="bt_dw" href="">Download</a></div>
+	</div>
+</div>
+<script type="text/javascript">
+	var root_url='launcher.php';
+	var test_url='test_file.php';
+	var file_hash="";
+	
+	var test_file=function()
+	{
+		lock=false;
+		$.getJSON( test_url, {file_id: file_hash}, 
+			function(data)
+			{
+				console.log(data);
+				if(data.status=="pending")
+				{
+					$(".wait").text("wait (query running). Do not close page");
+					setTimeout(function () {
+					 test_file();
+				  }, 20000);
+				}
+				else if(data.status=="available")
+				{
+					$(".wait").text("query finished, click to download button");
+					$(".bt_dw").attr("href", "./files/"+file_hash );
+					$(".download_link").show();
+				}
+				else
+				{
+					$(".wait").text("Error !");
+				}
+				
+				
+			}
+		);
+	}
+	
+	var get_json=function(url, params)
+	{
+	   console.log(url);
+	   console.log(params);
+	   $.getJSON( url, params, 
+			function(data)
+			{
+				console.log(data);
+				file_hash=data.file_id;
+				$(".wait").text("wait (query running). Do not close page");
+				setTimeout(function () {
+					 test_file();
+				  }, 20000);
+				
+				
+			}
+		);
+	}
+	$(document).ready(
+		function()
+		{
+		    var today = new Date();
+			today=today.toISOString(); //"2011-12-19T15:28:46.493Z"
+			//
+			$(".form_datetime").datetimepicker({format: 'yyyy-mm-ddThh:ii:ss'});
+			//$(".form_datetime").val(today);
+			
+			
+			 $("#download").click(
+				 function()
+				 {
+					params={}; 
+					var token=$("#token").val();
+					if(token.length>0)
+					{
+						params["token"]=token;
+					}
+					var date=$(".form_datetime").val();
+					if(date.length>0)
+					{
+						params["published_from"]=date;
+					}				
+					get_json(root_url, params);
+				 }
+			);
+		}
+		);
+</script>            
+</body>
+</html>
