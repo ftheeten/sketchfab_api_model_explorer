@@ -22,11 +22,9 @@
 		return $returned;
 	}
 	
-	function launch_sketchfab($url, $params, $i, $date=null)
+	function launch_sketchfab($url, $params, $i, $date_from=null, $date_to=null)
 	{
-		
 		global $results;
-		
 		if(array_key_exists("token", $params))
 		{
 			
@@ -57,10 +55,23 @@
 					foreach($elem["results"] as $record)
 					{
 						$go=true;
-						if(isset($date))
+						//print("\r\ndate_from =".$date_from);
+						//print("\r\ndate_to =".$date_to);
+						//print("\r\npublished =".$record["publishedAt"]);
+						if(isset($date_from))
 						{
-							if($record["publishedAt"]<$date)
+							if($record["publishedAt"]<$date_from  || strlen(trim($record["publishedAt"]))==0 )
 							{
+								//print("\r\nrefus1");
+								$go=false;
+							}							
+						}
+						if(isset($date_to))
+						{
+						
+							if($record["publishedAt"]>$date_to || strlen(trim($record["publishedAt"]))==0 )
+							{
+								//print("\r\nrefus2");
 								$go=false;
 							}
 						}
@@ -101,7 +112,7 @@
 				{
 					$next=$elem["next"];
 					$i++;
-					launch_sketchfab($next, ["token"=>$params["token"]] ,$i, $date);
+					launch_sketchfab($next, ["token"=>$params["token"]] ,$i, $date_from, $date_to);
 				}
 			}
 			//print(json_encode($elem));
@@ -136,16 +147,27 @@
 	{
 		$token=$argv[1];
 		$file_hash=$argv[2];
-		$date=null;
+		$date_from=null;
+		$date_to=null;
 		if(count($argv)>=4)
 		{
-			$date=$argv[3];		
+			if(strlen(trim($argv[3]))>0)
+			{
+				$date_from=$argv[3];		
+			}
+		}
+		if(count($argv)>=5)
+		{
+			if(strlen(trim($argv[4]))>0)
+			{
+				$date_to=$argv[4];		
+			}
 		}
 
 		$flag=create_flag_file($file_hash);
 		if($flag)
 		{
-			launch_sketchfab($root_url, ["token"=> $token], $i, $date);
+			launch_sketchfab($root_url, ["token"=> $token], $i, $date_from, $date_to);
 			write_file($file_hash);
 		}
 	}

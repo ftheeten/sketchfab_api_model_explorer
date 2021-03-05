@@ -26,29 +26,33 @@
             </div> 
 			
 			 <div class="col-sm-2 d-flex justify-content-start ">
-				Published from:
+				Uploaded from:
             </div>
 			<div class="col-sm-10 d-flex justify-content-start">
               <input size="16" type="text" class="form_datetime">
             </div> 
-			 <div class="col-sm-2 d-flex justify-content-start ">
-				Go:
+			<div class="col-sm-2 d-flex justify-content-start ">
+				Uploaded to:
             </div>
 			<div class="col-sm-10 d-flex justify-content-start">
-              <input type="button" value="download" id="download" name="download"/>
+              <input size="16" type="text" class="form_datetime_2">
+            </div>
+			<div class="col-sm-12 d-flex justify-content-start">
+              <input type="button" value="Process" id="download" name="download"/>
             </div> 
 		</div>
 	</div>
 	</div>
 	<div class="wait" style="font-style: italic;" ></div>
 		<br/>
-		<div class='download_link' style="display:none"> <a download="models.txt"  class="bt_dw" href="">Download</a></div>
+		<div class='download_link' style="display:none"> <a download="models.csv"  class="bt_dw" href="">Download</a></div>
 	</div>
 </div>
 <script type="text/javascript">
 	var root_url='launcher.php';
 	var test_url='test_file.php';
 	var file_hash="";
+	var now="";
 	
 	var test_file=function()
 	{
@@ -56,10 +60,14 @@
 		$.getJSON( test_url, {file_id: file_hash}, 
 			function(data)
 			{
-				console.log(data);
+				//console.log(data);
 				if(data.status=="pending")
 				{
-					$(".wait").text("wait (query running). Do not close page");
+					var lastCheck=new Date();
+					console.log(lastCheck);
+					var dateNow = now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate()+" " + now.getHours()+'-'+now.getMinutes() +':'+now.getSeconds();
+					var dateLast = lastCheck.getFullYear()+'-'+(lastCheck.getMonth()+1)+'-'+lastCheck.getDate()+" " + lastCheck.getHours()+':'+lastCheck.getMinutes() +':'+lastCheck.getSeconds();
+					$(".wait").html("wait (query running). <br/> Started "+ dateNow +"  <br/> Last check "+ dateLast +"<br/> Do not close page");
 					setTimeout(function () {
 					 test_file();
 				  }, 20000);
@@ -82,19 +90,36 @@
 	
 	var get_json=function(url, params)
 	{
-	   console.log(url);
-	   console.log(params);
+	   //console.log(url);
+	   //console.log(params);
 	   $.getJSON( url, params, 
 			function(data)
 			{
-				console.log(data);
+				//console.log(data);
+				now= new Date();
 				file_hash=data.file_id;
-				$(".wait").text("wait (query running). Do not close page");
+				var lastCheck=new Date();
+				console.log(lastCheck);
+				var dateNow = now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate()+" " + now.getHours()+':'+now.getMinutes() +':'+now.getSeconds();
+				var dateLast = lastCheck.getFullYear()+'-'+(lastCheck.getMonth()+1)+'-'+lastCheck.getDate()+" " + lastCheck.getHours()+':'+lastCheck.getMinutes() +':'+lastCheck.getSeconds();
+				$(".wait").html("wait (query running). <br/> Started "+ dateNow +"  <br/> Last check "+ dateLast +"<br/>Do not close page");
 				setTimeout(function () {
 					 test_file();
 				  }, 20000);
 				
 				
+			}
+		);
+	}
+	
+	var commit_dw=function()
+	{
+	   //console.log(url);
+	   //console.log(params);
+	   $.getJSON( "commit.php", {id:file_hash},
+			function(data)
+			{
+							
 			}
 		);
 	}
@@ -121,9 +146,23 @@
 					if(date.length>0)
 					{
 						params["published_from"]=date;
-					}				
+					}
+					var date2=$(".form_datetime_2").val();
+					if(date2.length>0)
+					{
+						params["published_to"]=date2;
+					}						
 					get_json(root_url, params);
 				 }
+			);
+			
+			$('.bt_dw').click(
+				function()
+				{
+					setTimeout(function () {
+					commit_dw();
+				  }, 5000);
+				}
 			);
 		}
 		);
